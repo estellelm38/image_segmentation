@@ -12,26 +12,31 @@ typedef struct {
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
 
-    //fix cluster centers in the two dimentsions image randomly
+    //fix cluster centers in the two dimensions image randomly
     pixel cluster[K];
 
     for(int k = 0; k < K; k++){
-        int i = rand() % rows; /* generating random coords to initialize the center ? */
-        int j = rand() % cols;
+        //on calcule les dimensions de l'image
+        //1024*768 = 786 432
+        int imageDimension = rows * cols;
+        printf("image dimension : %d\n", imageDimension);
+        //on choisit un pixel au hasard
+        int p = rand() % imageDimension; /* generating random coords to initialize the center ? */
 
-        cluster[k].r = pixmapIn[3 * (i * cols + j)].r ;
-        cluster[k].g = pixmapIn[3 * (i * cols + j)].g ;
-        cluster[k].b = pixmapIn[3 * (i * cols + j)].b ;
+        //pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
+        //3n - 2 = r, 3n - 1 = g, 3n = b
+
+        cluster[k].r = pixmapIn[p].r;
+        cluster[k].g = pixmapIn[p].g;
+        cluster[k].b = pixmapIn[p].b;
         cluster[k].label = k;
-
     }
-
     //allocate each pixel of the image to the nearest cluster center
 
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
 
-            int min = 255 * 3;
+            int min = 255 * 3; //max distance between two colors
 
             for(int k = 0; k < K; k++){
                 
