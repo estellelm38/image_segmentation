@@ -32,6 +32,6 @@ Util.o: Util.c Util.h
 # Clean rule to remove build files
 clean:
 	rm -f $(OBJECTS) $(EXEC)
-	rm -f *.pgm
+	rm -f *.ppm
 #include "imageFormationUtils.h"
 

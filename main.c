@@ -58,7 +58,7 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             for (int k = 0; k < K; k++)
             {
 
-                int colorDistance = pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2);
+                int colorDistance = sqrt(pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2));
 
                 if (colorDistance < min)
                 {
@@ -145,29 +145,12 @@ int main(int argc, char **argv)
     maxval = pm_getint(ifp);
 
     // memory allocation
-<<<<<<< HEAD
-    pixmap = (pixel *)malloc( cols * rows * sizeof(pixel));
-    pixmapout = (pixel *)malloc( cols * rows * sizeof(pixel));
-    label = (int *)malloc(cols * rows * sizeof(int));
-
-    // reading
-
-    for( i=0; i < rows; i++){
-     for( j=0; j < cols ; j++){
-       pixmap[(i * cols + j)/3].r = pm_getrawbyte(ifp);
-       pixmap[(i * cols + j)/3].g = pm_getrawbyte(ifp);
-       pixmap[(i * cols + j)/3].b = pm_getrawbyte(ifp);
-     }
-   }
-    for(int p = 0; p < rows * cols; p++)
-=======
     pixmap = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
     pixmapout = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
 
     // reading
 
     for (int p = 0; p < rows * cols; p++)
->>>>>>> 3c228cf (corrections main)
     {
         pixmap[p].r = pm_getrawbyte(ifp);
         pixmap[p].g = pm_getrawbyte(ifp);
