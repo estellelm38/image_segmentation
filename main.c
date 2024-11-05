@@ -84,6 +84,12 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             cluster[k].b = sum_b / count;
         }
     }
+    for (p = 0; p < imageDimension; p++)
+    {
+        pixmapOut[p].r = cluster[pixmapIn[p].label].r;
+        pixmapOut[p].g = cluster[pixmapIn[p].label].g;
+        pixmapOut[p].b = cluster[pixmapIn[p].label].b;
+    }
 }
 int main(int argc, char **argv)
 {
