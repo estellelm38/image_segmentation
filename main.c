@@ -11,15 +11,16 @@ typedef struct {
 } pixel;
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
+    //on calcule les dimensions de l'image
+    //1024*768 = 786 432
+    int imageDimension = rows * cols;
+    printf("image dimension : %d\n", imageDimension);
 
     //fix cluster centers in the two dimensions image randomly
     pixel cluster[K];
 
     for(int k = 0; k < K; k++){
-        //on calcule les dimensions de l'image
-        //1024*768 = 786 432
-        int imageDimension = rows * cols;
-        printf("image dimension : %d\n", imageDimension);
+
         //on choisit un pixel au hasard
         int p = rand() % imageDimension; /* generating random coords to initialize the center ? */
 
@@ -33,21 +34,23 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
     }
     //allocate each pixel of the image to the nearest cluster center
 
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < cols; j++){
+    int associatedK = 0;
 
-            int min = 255 * 3; //max distance between two colors
-
-            for(int k = 0; k < K; k++){
-                
-                int colorDistance = sqrt(pow(pixmapIn[3 * (i * cols + j)].r - cluster[k].r, 2) + pow(pixmapIn[3 * (i * cols + j)].g - cluster[k].g, 2) + pow(pixmapIn[3 * (i * cols + j)].b - cluster[k].b, 2));
+    for(int p = 0; p < imageDimension; p++){
+        
+        int min = 255 * 3; //max distance between two colors
+        
+        for(int k = 0; k < K; k++){
+            
+            int colorDistance = pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2);
                 
                 if(colorDistance < min){
                     min = colorDistance;
-
-                    pixmapIn[3 * (i * cols + j)].label = k;
+                    associatedK = k;
                 }
             }
+            //assign the pixel to the cluster with the minimum distance
+            pixmapIn[p].label = associatedK;
         }
     }
 
