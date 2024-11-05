@@ -3,6 +3,7 @@
 #include <string.h>
 #include "Util.h"
 #include <math.h>
+#include <time.h>
 #define MACRO_K 4
 
 typedef struct
@@ -13,8 +14,10 @@ typedef struct
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 {
+
+    srand(time(NULL));
+
     // on calcule les dimensions de l'image
-    // 1024*768 = 786 432
     int imageDimension = rows * cols;
     printf("image dimension : %d\n", imageDimension);
     int p;
@@ -27,19 +30,25 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 
         // on choisit un pixel au hasard
         p = rand() % imageDimension; /* generating random coords to initialize the center ? */
+        printf("p : %d\n", p);
 
         // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
         // 3n - 2 = r, 3n - 1 = g, 3n = b
 
         cluster[k].r = pixmapIn[p].r;
+        printf("r : %d\n", cluster[k].r);
         cluster[k].g = pixmapIn[p].g;
+        printf("g : %d\n", cluster[k].g);
         cluster[k].b = pixmapIn[p].b;
+        printf("b : %d\n", cluster[k].b);
         cluster[k].label = k;
+        printf("label : %d\n", cluster[k].label);
     }
     // allocate each pixel of the image to the nearest cluster center
 
     for (int i = 0; i < 2; i++)
     {
+        printf("iteration : %d\n", i);
         int associatedK = 0;
         for (p = 0; p < imageDimension; p++)
         {
@@ -69,7 +78,7 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             int sum_b = 0;
             int count = 0;
 
-            for (p = 0; p < imageDimension; i++)
+            for (p = 0; p < imageDimension; p++)
             {
                 if (pixmapIn[p].label == k)
                 {
@@ -96,13 +105,13 @@ int main(int argc, char **argv)
     FILE *ifp, *ofp;
     pixel *pixmap, *pixmapout;
     int ich1, ich2, rows, cols, maxval;
-    int *label, i, j;
+    int i, j;
     char file_name[100];
     // args is : file for the moment
 
-    if (argc != 2)
+    if (argc != 3)
     {
-        printf("\n %s  Usage: input_file ( + K ?)  ", argv[0]);
+        printf("\n %s  Usage: input_file K ", argv[0]);
         exit(0);
     }
 
@@ -124,7 +133,6 @@ int main(int argc, char **argv)
     {
         pm_erreur("EOF /read error / magic number");
     }
-    printf(" ich2 is : %d \n ", ich2);
     if (ich2 != '6')
     {
         pm_erreur(" wrong file type ");
@@ -137,6 +145,7 @@ int main(int argc, char **argv)
     maxval = pm_getint(ifp);
 
     // memory allocation
+<<<<<<< HEAD
     pixmap = (pixel *)malloc( cols * rows * sizeof(pixel));
     pixmapout = (pixel *)malloc( cols * rows * sizeof(pixel));
     label = (int *)malloc(cols * rows * sizeof(int));
@@ -151,16 +160,30 @@ int main(int argc, char **argv)
      }
    }
     for(int p = 0; p < rows * cols; p++)
+=======
+    pixmap = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
+    pixmapout = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
+
+    // reading
+
+    for (int p = 0; p < rows * cols; p++)
+>>>>>>> 3c228cf (corrections main)
     {
         pixmap[p].r = pm_getrawbyte(ifp);
         pixmap[p].g = pm_getrawbyte(ifp);
         pixmap[p].b = pm_getrawbyte(ifp);
+        // pixmap[(i * cols + j)/3].r = pm_getrawbyte(ifp);
+        // pixmap[(i * cols + j)/3].g = pm_getrawbyte(ifp);
+        // pixmap[(i * cols + j)/3].b = pm_getrawbyte(ifp);
     }
 
     //implementing kmeans algorithm
      kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
     // implementing kmeans algorithm
-    kmeans(pixmap, MACRO_K, rows, cols, pixmapout);
+
+    int K = atoi(argv[2]);
+    kmeans(pixmap, K, rows, cols, pixmapout);
+    printf("kmeans done\n");
 
     // reading
 
@@ -173,11 +196,11 @@ int main(int argc, char **argv)
         exit(1);
     }
     /*Writing in the first file */
-    fprintf(ofp, "P5\n");
+    fprintf(ofp, "P6\n");
     fprintf(ofp, "%d %d \n", cols, rows);
     fprintf(ofp, "%d\n", maxval);
 
-    for(int p = 0 ; p < rows * cols; p++)
+    for (int p = 0; p < rows * cols; p++)
     {
         fprintf(ofp, "%c", pixmapout[p].r);
         fprintf(ofp, "%c", pixmapout[p].g);
