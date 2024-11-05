@@ -5,100 +5,92 @@
 #include <math.h>
 #define MACRO_K 4
 
-typedef struct {
+typedef struct
+{
     unsigned char r, g, b;
     unsigned int label;
 } pixel;
 
-void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
-    //on calcule les dimensions de l'image
-    //1024*768 = 786 432
+void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
+{
+    // on calcule les dimensions de l'image
+    // 1024*768 = 786 432
     int imageDimension = rows * cols;
     printf("image dimension : %d\n", imageDimension);
+    int p;
 
-    //fix cluster centers in the two dimensions image randomly
+    // fix cluster centers in the two dimensions image randomly
     pixel cluster[K];
 
-    for(int k = 0; k < K; k++){
+    for (int k = 0; k < K; k++)
+    {
 
-        //on choisit un pixel au hasard
-        int p = rand() % imageDimension; /* generating random coords to initialize the center ? */
+        // on choisit un pixel au hasard
+        p = rand() % imageDimension; /* generating random coords to initialize the center ? */
 
-        //pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
-        //3n - 2 = r, 3n - 1 = g, 3n = b
+        // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
+        // 3n - 2 = r, 3n - 1 = g, 3n = b
 
         cluster[k].r = pixmapIn[p].r;
         cluster[k].g = pixmapIn[p].g;
         cluster[k].b = pixmapIn[p].b;
         cluster[k].label = k;
     }
-    //allocate each pixel of the image to the nearest cluster center
+    // allocate each pixel of the image to the nearest cluster center
 
-    int associatedK = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        int associatedK = 0;
+        for (p = 0; p < imageDimension; p++)
+        {
 
-    for(int p = 0; p < imageDimension; p++){
-        
-        int min = 255 * 3; //max distance between two colors
-        
-        for(int k = 0; k < K; k++){
-            
-            int colorDistance = pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2);
-                
-                if(colorDistance < min){
+            int min = 255 * 3; // max distance between two colors
+
+            for (int k = 0; k < K; k++)
+            {
+
+                int colorDistance = pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2);
+
+                if (colorDistance < min)
+                {
                     min = colorDistance;
                     associatedK = k;
                 }
             }
-            //assign the pixel to the cluster with the minimum distance
+            // assign the pixel to the cluster with the minimum distance
             pixmapIn[p].label = associatedK;
         }
-    }
 
-    //update the centroids of the clusters
+        for (int k = 0; k < K; k++)
+        {
 
-    for(int k = 0; k < K; k++){
+            int sum_r = 0;
+            int sum_g = 0;
+            int sum_b = 0;
+            int count = 0;
 
-        int sum_r = 0;
-        int sum_g = 0;
-        int sum_b = 0;
-        int count = 0;
-
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                if(pixmapIn[3 * (i * cols + j)].label == k){
-                    sum_r += pixmapIn[3 * (i * cols + j)].r;
-                    sum_g += pixmapIn[3 * (i * cols + j)].g;
-                    sum_b += pixmapIn[3 * (i * cols + j)].b;
+            for (p = 0; p < imageDimension; i++)
+            {
+                if (pixmapIn[p].label == k)
+                {
+                    sum_r += pixmapIn[p].r;
+                    sum_g += pixmapIn[p].g;
+                    sum_b += pixmapIn[p].b;
                     count++;
                 }
             }
-        }
-
-        cluster[k].r = sum_r / count;
-        cluster[k].g = sum_g / count;
-        cluster[k].b = sum_b / count;
-    }
-    for(int k = 0; k < K; k++){
-
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                if(pixmapIn[3 * (i * cols + j)].label == k){
-                    pixmapOut[3 * (i * cols + j)].r = cluster[k].r;
-                    pixmapOut[3 * (i * cols + j)].g = cluster[k].g;
-                    pixmapOut[3 * (i * cols + j)].b = cluster[k].b;
-                }
-            }
+            cluster[k].r = sum_r / count;
+            cluster[k].g = sum_g / count;
+            cluster[k].b = sum_b / count;
         }
     }
 }
-
-
-
-int main(int argc, char ** argv) {
+int main(int argc, char **argv)
+{
     FILE *ifp, *ofp;
-    pixel* pixmap, *pixmapout;
+    pixel *pixmap, *pixmapout;
     int ich1, ich2, rows, cols, maxval;
-    int *label,i,j;
+    int *label, i, j;
     char file_name[100];
     // args is : file for the moment
 
@@ -137,45 +129,47 @@ int main(int argc, char ** argv) {
     rows = pm_getint(ifp);
     maxval = pm_getint(ifp);
 
-    //memory allocation
-    pixmap = (pixel *) malloc(3 * cols * rows * sizeof(pixel));
-    pixmapout =  (pixel *) malloc(3 * cols * rows * sizeof(pixel));
+    // memory allocation
+    pixmap = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
+    pixmapout = (pixel *)malloc(3 * cols * rows * sizeof(pixel));
     label = (int *)malloc(cols * rows * sizeof(int));
 
-    //reading
+    // reading
 
-    for( i=0; i < rows; i++){
-     for( j=0; j < cols ; j++){
-       pixmap[3 * (i * cols + j)].r = pm_getrawbyte(ifp);
-       pixmap[3 * (i * cols + j)].g = pm_getrawbyte(ifp);
-       pixmap[3 * (i * cols + j)].b = pm_getrawbyte(ifp);
-     }
-   }
+    for (i = 0; i < rows; i++)
+    {
+        for (j = 0; j < cols; j++)
+        {
+            pixmap[3 * (i * cols + j)].r = pm_getrawbyte(ifp);
+            pixmap[3 * (i * cols + j)].g = pm_getrawbyte(ifp);
+            pixmap[3 * (i * cols + j)].b = pm_getrawbyte(ifp);
+        }
+    }
 
-    //implementing kmeans algorithm
-    kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
+    // implementing kmeans algorithm
+    kmeans(pixmap, MACRO_K, rows, cols, pixmapout);
 
-    //reading
+    // reading
 
-
-    strcpy(file_name,"output.ppm");/* to rename later */
-     /* Opening first output file */
-    ofp = fopen(file_name,"w");
-    if (ofp == NULL) {
-      printf("error in opening file %s\n", file_name);
-      exit(1);
+    strcpy(file_name, "output.ppm"); /* to rename later */
+                                     /* Opening first output file */
+    ofp = fopen(file_name, "w");
+    if (ofp == NULL)
+    {
+        printf("error in opening file %s\n", file_name);
+        exit(1);
     }
     /*Writing in the first file */
     fprintf(ofp, "P5\n");
     fprintf(ofp, "%d %d \n", cols, rows);
     fprintf(ofp, "%d\n", maxval);
 
-    for(i=0; i < rows; i++)
-      for(j=0; j < cols ; j++){
-          fprintf(ofp, "%c",pixmapout[i * cols + j].r);
-          fprintf(ofp, "%c",pixmapout[i * cols + j].g);
-          fprintf(ofp, "%c",pixmapout[i * cols + j].b);
-          /* no need to print label for the moment ? */
-       }
-
+    for (i = 0; i < rows; i++)
+        for (j = 0; j < cols; j++)
+        {
+            fprintf(ofp, "%c", pixmapout[i * cols + j].r);
+            fprintf(ofp, "%c", pixmapout[i * cols + j].g);
+            fprintf(ofp, "%c", pixmapout[i * cols + j].b);
+            /* no need to print label for the moment ? */
+        }
 }
