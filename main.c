@@ -15,7 +15,7 @@ typedef struct
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 {
 
-    srand(time(NULL));
+    srand(0);
 
     // on calcule les dimensions de l'image
     int imageDimension = rows * cols;
@@ -88,11 +88,12 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
                     count++;
                 }
             }
-            cluster[k].r = sum_r / count;
-            cluster[k].g = sum_g / count;
-            cluster[k].b = sum_b / count;
+            if(count !=0)cluster[k].r = sum_r / count;
+            if(count !=0)cluster[k].g = sum_g / count;
+            if(count !=0)cluster[k].b = sum_b / count;
         }
     }
+
     for (p = 0; p < imageDimension; p++)
     {
         pixmapOut[p].r = cluster[pixmapIn[p].label].r;
@@ -105,7 +106,6 @@ int main(int argc, char **argv)
     FILE *ifp, *ofp;
     pixel *pixmap, *pixmapout;
     int ich1, ich2, rows, cols, maxval;
-    int i, j;
     char file_name[100];
     // args is : file for the moment
 
