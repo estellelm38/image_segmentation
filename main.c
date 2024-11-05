@@ -142,14 +142,11 @@ int main(int argc, char **argv)
 
     // reading
 
-    for (i = 0; i < rows; i++)
+    for(int p = 0; p < rows * cols; p++)
     {
-        for (j = 0; j < cols; j++)
-        {
-            pixmap[3 * (i * cols + j)].r = pm_getrawbyte(ifp);
-            pixmap[3 * (i * cols + j)].g = pm_getrawbyte(ifp);
-            pixmap[3 * (i * cols + j)].b = pm_getrawbyte(ifp);
-        }
+        pixmap[p].r = pm_getrawbyte(ifp);
+        pixmap[p].g = pm_getrawbyte(ifp);
+        pixmap[p].b = pm_getrawbyte(ifp);
     }
 
     // implementing kmeans algorithm
@@ -170,12 +167,10 @@ int main(int argc, char **argv)
     fprintf(ofp, "%d %d \n", cols, rows);
     fprintf(ofp, "%d\n", maxval);
 
-    for (i = 0; i < rows; i++)
-        for (j = 0; j < cols; j++)
-        {
-            fprintf(ofp, "%c", pixmapout[i * cols + j].r);
-            fprintf(ofp, "%c", pixmapout[i * cols + j].g);
-            fprintf(ofp, "%c", pixmapout[i * cols + j].b);
-            /* no need to print label for the moment ? */
-        }
+    for(int p = 0 ; p < rows * cols; p++)
+    {
+        fprintf(ofp, "%c", pixmapout[p].r);
+        fprintf(ofp, "%c", pixmapout[p].g);
+        fprintf(ofp, "%c", pixmapout[p].b);
+    }
 }
