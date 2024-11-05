@@ -40,12 +40,12 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
 
             for(int k = 0; k < K; k++){
                 
-                int colorDistance = sqrt(pow(pixmapIn[3 * (i * cols + j)].r - cluster[k].r, 2) + pow(pixmapIn[3 * (i * cols + j)].g - cluster[k].g, 2) + pow(pixmapIn[3 * (i * cols + j)].b - cluster[k].b, 2));
+                int colorDistance = sqrt(pow(pixmapIn[(i * cols + j)].r - cluster[k].r, 2) + pow(pixmapIn[(i * cols + j)].g - cluster[k].g, 2) + pow(pixmapIn[(i * cols + j)].b - cluster[k].b, 2));
                 
                 if(colorDistance < min){
                     min = colorDistance;
 
-                    pixmapIn[3 * (i * cols + j)].label = k;
+                    pixmapIn[(i * cols + j)].label = k;
                 }
             }
         }
@@ -62,10 +62,10 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
 
         for(int i = 0; i < rows; i++){
             for(int j = 0; j < cols; j++){
-                if(pixmapIn[3 * (i * cols + j)].label == k){
-                    sum_r += pixmapIn[3 * (i * cols + j)].r;
-                    sum_g += pixmapIn[3 * (i * cols + j)].g;
-                    sum_b += pixmapIn[3 * (i * cols + j)].b;
+                if(pixmapIn[(i * cols + j)].label == k){
+                    sum_r += pixmapIn[(i * cols + j)].r;
+                    sum_g += pixmapIn[(i * cols + j)].g;
+                    sum_b += pixmapIn[(i * cols + j)].b;
                     count++;
                 }
             }
@@ -79,10 +79,10 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut){
 
         for(int i = 0; i < rows; i++){
             for(int j = 0; j < cols; j++){
-                if(pixmapIn[3 * (i * cols + j)].label == k){
-                    pixmapOut[3 * (i * cols + j)].r = cluster[k].r;
-                    pixmapOut[3 * (i * cols + j)].g = cluster[k].g;
-                    pixmapOut[3 * (i * cols + j)].b = cluster[k].b;
+                if(pixmapIn[(i * cols + j)].label == k){
+                    pixmapOut[(i * cols + j)].r = cluster[k].r;
+                    pixmapOut[(i * cols + j)].g = cluster[k].g;
+                    pixmapOut[(i * cols + j)].b = cluster[k].b;
                 }
             }
         }
@@ -143,9 +143,9 @@ int main(int argc, char ** argv) {
 
     for( i=0; i < rows; i++){
      for( j=0; j < cols ; j++){
-       pixmap[3 * (i * cols + j)].r = pm_getrawbyte(ifp);
-       pixmap[3 * (i * cols + j)].g = pm_getrawbyte(ifp);
-       pixmap[3 * (i * cols + j)].b = pm_getrawbyte(ifp);
+       pixmap[(i * cols + j)].r = pm_getrawbyte(ifp);
+       pixmap[(i * cols + j)].g = pm_getrawbyte(ifp);
+       pixmap[(i * cols + j)].b = pm_getrawbyte(ifp);
      }
    }
 
