@@ -53,6 +53,8 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
     {
         printf("iteration : %d\n", i);
         int associatedK = 0;
+        float distance_weight = 0.2;
+        float color_weight = 0.8; 
         for (p = 0; p < imageDimension; p++)
         {
 
@@ -61,11 +63,12 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             for (int k = 0; k < K; k++)
             {
 
-                int colorDistance = sqrt(pow(pixmapIn[p].i - cluster[k].i, 2) + pow(pixmapIn[p].j - cluster[k].j, 2));
-
-                if (colorDistance < min)
+                int colorDistance = sqrt(pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2));
+                int realDistance = sqrt(pow(pixmapIn[p].i - cluster[k].i, 2) + pow(pixmapIn[p].j - cluster[k].j, 2));
+                int combination = sqrt( color_weight * pow( colorDistance,2) + distance_weight * pow(realDistance,2) );
+                if (combination < min)
                 {
-                    min = colorDistance;
+                    min = combination;
                     associatedK = k;
                 }
             }
@@ -80,6 +83,8 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             int sum_g = 0;
             int sum_b = 0;
             int count = 0;
+            int sumi = 0;
+            int sumj = 0;
 
             for (p = 0; p < imageDimension; p++)
             {
@@ -88,12 +93,19 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
                     sum_r += pixmapIn[p].r;
                     sum_g += pixmapIn[p].g;
                     sum_b += pixmapIn[p].b;
+                    sumi += pixmapIn[p].i;
+                    sumj += pixmapIn[p].j;
                     count++;
                 }
             }
-            if(count !=0)cluster[k].r = sum_r / count;
-            if(count !=0)cluster[k].g = sum_g / count;
-            if(count !=0)cluster[k].b = sum_b / count;
+            if(count !=0)
+            {
+                cluster[k].r = sum_r / count;
+                cluster[k].g = sum_g / count;
+                cluster[k].b = sum_b / count;
+                cluster[k].i = sumi / count;
+                cluster[k].j = sumj / count;
+            }
         }
     }
 
@@ -167,7 +179,7 @@ int main(int argc, char **argv)
     }
 
     //implementing kmeans algorithm
-     kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
+    //kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
     // implementing kmeans algorithm
 
     int K = atoi(argv[2]);
