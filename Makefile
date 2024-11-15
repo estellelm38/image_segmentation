@@ -33,5 +33,6 @@ Util.o: Util.c Util.h
 clean:
 	rm -f $(OBJECTS) $(EXEC)
 	rm -f *.ppm
+	rm -f *.txt
 #include "imageFormationUtils.h"
 

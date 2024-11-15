@@ -4,22 +4,31 @@
 #include "Util.h"
 #include <math.h>
 #include <time.h>
-#define MACRO_K 4
 
 typedef struct
 {
     unsigned char r, g, b;
+    int i, j; // to compute distance here
     unsigned int label;
 } pixel;
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 {
-
-    srand(0);
+    int seed = time(NULL); 
+    printf("seed : %d\n", seed);
+    srand(seed);
+    //we save the seed
+    FILE *file = fopen("seed.txt", "w");
+    if (file == NULL) {
+        perror("Error opening file");
+    }
+    fprintf(file, "%d\n", seed);
+    fclose(file);
+   
 
     // on calcule les dimensions de l'image
     int imageDimension = rows * cols;
-    printf("image dimension : %d\n", imageDimension);
+    // printf("image dimension : %d\n", imageDimension);
     int p;
 
     // fix cluster centers in the two dimensions image randomly
@@ -30,44 +39,58 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 
         // on choisit un pixel au hasard
         p = rand() % imageDimension; /* generating random coords to initialize the center ? */
-        printf("p : %d\n", p);
+        // printf("p : %d\n", p);
 
         // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
         // 3n - 2 = r, 3n - 1 = g, 3n = b
 
         cluster[k].r = pixmapIn[p].r;
-        printf("r : %d\n", cluster[k].r);
+        // printf("r : %d\n", cluster[k].r);
         cluster[k].g = pixmapIn[p].g;
-        printf("g : %d\n", cluster[k].g);
+        // printf("g : %d\n", cluster[k].g);
         cluster[k].b = pixmapIn[p].b;
-        printf("b : %d\n", cluster[k].b);
+        // printf("b : %d\n", cluster[k].b);
         cluster[k].label = k;
-        printf("label : %d\n", cluster[k].label);
+        // printf("label : %d\n", cluster[k].label);
+        cluster[k].i = pixmapIn[p].i;
+        //printf("i : %d\n", cluster[k].i);
+        cluster[k].j = pixmapIn[p].j;
+        //printf("j : %d\n", cluster[k].j);
     }
     // allocate each pixel of the image to the nearest cluster center
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 3; i++)
     {
-        printf("iteration : %d\n", i);
+        // printf("iteration : %d\n", i);
         int associatedK = 0;
+        float color_weight = 0.80;
+        float distance_weight = 1 - color_weight;
+  
         for (p = 0; p < imageDimension; p++)
         {
 
-            int min = 255 * 3; // max distance between two colors
+            int min = 2 * rows * cols; // max distance between two colors
+            // printf("min : %d\n", min);
 
             for (int k = 0; k < K; k++)
             {
 
                 int colorDistance = sqrt(pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2));
-
-                if (colorDistance < min)
+                // printf("color distance : %d\n", colorDistance);
+                int realDistance = sqrt(pow(pixmapIn[p].i - cluster[k].i, 2) + pow(pixmapIn[p].j - cluster[k].j, 2));
+                // printf("real distance : %d\n", realDistance);
+                // j'ai un doute sur le calcul de combination, sans parler des poids
+                int combination = color_weight * colorDistance + distance_weight * realDistance;
+                // printf("combination : %d\n", combination);
+                if (combination < min)
                 {
-                    min = colorDistance;
+                    min = combination;
                     associatedK = k;
                 }
             }
             // assign the pixel to the cluster with the minimum distance
             pixmapIn[p].label = associatedK;
+            // printf("associatedK : %d\n", associatedK);
         }
 
         for (int k = 0; k < K; k++)
@@ -77,6 +100,8 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             int sum_g = 0;
             int sum_b = 0;
             int count = 0;
+            int sumi = 0;
+            int sumj = 0;
 
             for (p = 0; p < imageDimension; p++)
             {
@@ -85,12 +110,19 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
                     sum_r += pixmapIn[p].r;
                     sum_g += pixmapIn[p].g;
                     sum_b += pixmapIn[p].b;
+                    sumi += pixmapIn[p].i;
+                    sumj += pixmapIn[p].j;
                     count++;
                 }
             }
-            if(count !=0)cluster[k].r = sum_r / count;
-            if(count !=0)cluster[k].g = sum_g / count;
-            if(count !=0)cluster[k].b = sum_b / count;
+            if (count != 0)
+            {
+                cluster[k].r = sum_r / count;
+                cluster[k].g = sum_g / count;
+                cluster[k].b = sum_b / count;
+                cluster[k].i = sumi / count;
+                cluster[k].j = sumj / count;
+            }
         }
     }
 
@@ -99,6 +131,8 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
         pixmapOut[p].r = cluster[pixmapIn[p].label].r;
         pixmapOut[p].g = cluster[pixmapIn[p].label].g;
         pixmapOut[p].b = cluster[pixmapIn[p].label].b;
+        pixmapOut[p].i = pixmapIn[p].i;
+        pixmapOut[p].j = pixmapIn[p].j;
     }
 }
 int main(int argc, char **argv)
@@ -141,7 +175,7 @@ int main(int argc, char **argv)
     // image dimensions
     cols = pm_getint(ifp);
     rows = pm_getint(ifp);
-    printf(" cols is : %d and rows is : %d \n ",cols, rows);
+    // printf(" cols is : %d and rows is : %d \n ", cols, rows);
     maxval = pm_getint(ifp);
 
     // memory allocation
@@ -155,14 +189,17 @@ int main(int argc, char **argv)
         pixmap[p].r = pm_getrawbyte(ifp);
         pixmap[p].g = pm_getrawbyte(ifp);
         pixmap[p].b = pm_getrawbyte(ifp);
-        // pixmap[(i * cols + j)/3].r = pm_getrawbyte(ifp);
-        // pixmap[(i * cols + j)/3].g = pm_getrawbyte(ifp);
-        // pixmap[(i * cols + j)/3].b = pm_getrawbyte(ifp);
+        pixmap[p].i = p / cols;
+        pixmap[p].j = p % cols;
+        // printf("%d %d %d %d \n", pixmap[p].i, pixmap[p].j, p, cols);
+        //  pixmap[(i * cols + j)/3].r = pm_getrawbyte(ifp);
+        //  pixmap[(i * cols + j)/3].g = pm_getrawbyte(ifp);
+        //  pixmap[(i * cols + j)/3].b = pm_getrawbyte(ifp);
     }
 
-    //implementing kmeans algorithm
-     kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
     // implementing kmeans algorithm
+    // kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
+    //  implementing kmeans algorithm
 
     int K = atoi(argv[2]);
     kmeans(pixmap, K, rows, cols, pixmapout);
