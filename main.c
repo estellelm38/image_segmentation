@@ -14,7 +14,8 @@ typedef struct
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 {
-    int seed = time(NULL); 
+    //int seed = time(NULL); 
+    int seed = 1731921458;
     printf("seed : %d\n", seed);
     srand(seed);
     //we save the seed
@@ -24,8 +25,8 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
     }
     fprintf(file, "%d\n", seed);
     fclose(file);
-   
-
+    
+    
     // on calcule les dimensions de l'image
     int imageDimension = rows * cols;
     // printf("image dimension : %d\n", imageDimension);
@@ -58,9 +59,14 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
         //printf("j : %d\n", cluster[k].j);
     }
     // allocate each pixel of the image to the nearest cluster center
-
-    for (int i = 0; i < 3; i++)
-    {
+    int i = 0;
+    int changes_in_cluster =rows*cols;
+    int loops =0;
+    while(  changes_in_cluster > rows*cols / 100 )
+    {   loops ++;
+        printf("i is : %d\n",i);
+        changes_in_cluster =0;
+        i++;
         // printf("iteration : %d\n", i);
         int associatedK = 0;
         float color_weight = 0.80;
@@ -69,15 +75,15 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
         for (p = 0; p < imageDimension; p++)
         {
 
-            int min = 2 * rows * cols; // max distance between two colors
+            float min = 2 * rows * cols; // max distance between two colors
             // printf("min : %d\n", min);
 
             for (int k = 0; k < K; k++)
             {
 
-                int colorDistance = sqrt(pow(pixmapIn[p].r - cluster[k].r, 2) + pow(pixmapIn[p].g - cluster[k].g, 2) + pow(pixmapIn[p].b - cluster[k].b, 2));
+                int colorDistance = sqrt(pow((float)(pixmapIn[p].r - cluster[k].r)/255, 2) + pow((float)(pixmapIn[p].g - cluster[k].g)/255, 2) + pow((float)(pixmapIn[p].b - cluster[k].b)/255, 2));
                 // printf("color distance : %d\n", colorDistance);
-                int realDistance = sqrt(pow(pixmapIn[p].i - cluster[k].i, 2) + pow(pixmapIn[p].j - cluster[k].j, 2));
+                int realDistance = sqrt(pow((float)(pixmapIn[p].i - cluster[k].i)/rows, 2) + pow((float)(pixmapIn[p].j - cluster[k].j)/cols, 2));
                 // printf("real distance : %d\n", realDistance);
                 // j'ai un doute sur le calcul de combination, sans parler des poids
                 int combination = color_weight * colorDistance + distance_weight * realDistance;
@@ -89,6 +95,7 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
                 }
             }
             // assign the pixel to the cluster with the minimum distance
+            if(pixmapIn[p].label!=associatedK){changes_in_cluster++;}
             pixmapIn[p].label = associatedK;
             // printf("associatedK : %d\n", associatedK);
         }
@@ -125,7 +132,7 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             }
         }
     }
-
+    printf("LOOPS ARE : %d \n",loops -3);
     for (p = 0; p < imageDimension; p++)
     {
         pixmapOut[p].r = cluster[pixmapIn[p].label].r;
