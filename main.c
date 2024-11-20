@@ -5,12 +5,55 @@
 #include <math.h>
 #include <time.h>
 
-typedef struct
-{
-    unsigned char r, g, b;
-    int i, j; // to compute distance here
-    unsigned int label;
-} pixel;
+void distribute_centroids(pixel *pixmapIN, int rows, int cols, int K, pixel *cluster_centers) {
+    int bins = 16; // Diviser l'espace de couleurs en une grille 16x16x16
+    int histo [16][16][16];
+    int step = 256 / bins; // Taille de chaque intervalle
+
+    // Construire un histome
+    for (int p = 0; p < rows * cols; p++) {
+        int r_bin = pixmapIN[p].r / step;
+        int g_bin = pixmapIN[p].g / step;
+        int b_bin = pixmapIN[p].b / step;
+        histo[r_bin][g_bin][b_bin]++;
+    }
+
+    // Trouver les bins les plus denses
+    for (int k = 0; k < K; k++) {
+        int max_count = 0, max_r = 0, max_g = 0, max_b = 0;
+
+        for (int r = 0; r < bins; r++) {
+            for (int g = 0; g < bins; g++) {
+                for (int b = 0; b < bins; b++) {
+                    if (histo[r][g][b] > max_count) {
+                        max_count = histo[r][g][b];
+                        max_r = r;
+                        max_g = g;
+                        max_b = b;
+                    }
+                }
+            }
+        }
+
+        // Définir le centroïde
+        cluster_centers[k].r = max_r * step + step / 2;
+        cluster_centers[k].g = max_g * step + step / 2;
+        cluster_centers[k].b = max_b * step + step / 2;
+        int min_dist = 255*3;
+        for (int p = 0; p < rows*cols; p++)
+        {   
+            float colorDistance = sqrt(pow((float)(pixmapIN[p].r - cluster_centers[k].r)/255, 2) + pow((float)(pixmapIN[p].g - cluster_centers[k].g)/255, 2) + pow((float)(pixmapIN[p].b - cluster_centers[k].b)/255, 2));
+            if(colorDistance < min_dist){
+                cluster_centers[k].i=pixmapIN[p].i;
+                cluster_centers[k].j=pixmapIN[p].j;
+                /* this is just a color check in the image in order to get the pixel that is the nearest possible to that cluster*/
+            }
+        }
+        
+        // Éviter de réutiliser la même région
+        histo[max_r][max_g][max_b] = 0;
+    }
+}
 
 void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 {
@@ -34,30 +77,30 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 
     // fix cluster centers in the two dimensions image randomly
     pixel cluster[K];
+    distribute_centroids(pixmapIn,rows,cols,K,cluster);
+    // for (int k = 0; k < K; k++)
+    // {
 
-    for (int k = 0; k < K; k++)
-    {
+    //     // on choisit un pixel au hasard
+    //     p = rand() % imageDimension; /* generating random coords to initialize the center ? */
+    //     // printf("p : %d\n", p);
 
-        // on choisit un pixel au hasard
-        p = rand() % imageDimension; /* generating random coords to initialize the center ? */
-        // printf("p : %d\n", p);
+    //     // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
+    //     // 3n - 2 = r, 3n - 1 = g, 3n = b
 
-        // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
-        // 3n - 2 = r, 3n - 1 = g, 3n = b
-
-        cluster[k].r = pixmapIn[p].r;
-        // printf("r : %d\n", cluster[k].r);
-        cluster[k].g = pixmapIn[p].g;
-        // printf("g : %d\n", cluster[k].g);
-        cluster[k].b = pixmapIn[p].b;
-        // printf("b : %d\n", cluster[k].b);
-        cluster[k].label = k;
-        // printf("label : %d\n", cluster[k].label);
-        cluster[k].i = pixmapIn[p].i;
-        //printf("i : %d\n", cluster[k].i);
-        cluster[k].j = pixmapIn[p].j;
-        //printf("j : %d\n", cluster[k].j);
-    }
+    //     cluster[k].r = pixmapIn[p].r;
+    //     // printf("r : %d\n", cluster[k].r);
+    //     cluster[k].g = pixmapIn[p].g;
+    //     // printf("g : %d\n", cluster[k].g);
+    //     cluster[k].b = pixmapIn[p].b;
+    //     // printf("b : %d\n", cluster[k].b);
+    //     cluster[k].label = k;
+    //     // printf("label : %d\n", cluster[k].label);
+    //     cluster[k].i = pixmapIn[p].i;
+    //     //printf("i : %d\n", cluster[k].i);
+    //     cluster[k].j = pixmapIn[p].j;
+    //     //printf("j : %d\n", cluster[k].j);
+    // }
     // allocate each pixel of the image to the nearest cluster center
     int i = 0;
     int changes_in_cluster =rows*cols;
@@ -81,12 +124,12 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
             for (int k = 0; k < K; k++)
             {
 
-                int colorDistance = sqrt(pow((float)(pixmapIn[p].r - cluster[k].r)/255, 2) + pow((float)(pixmapIn[p].g - cluster[k].g)/255, 2) + pow((float)(pixmapIn[p].b - cluster[k].b)/255, 2));
+                float colorDistance = sqrt(pow((float)(pixmapIn[p].r - cluster[k].r)/255, 2) + pow((float)(pixmapIn[p].g - cluster[k].g)/255, 2) + pow((float)(pixmapIn[p].b - cluster[k].b)/255, 2));
                 // printf("color distance : %d\n", colorDistance);
-                int realDistance = sqrt(pow((float)(pixmapIn[p].i - cluster[k].i)/rows, 2) + pow((float)(pixmapIn[p].j - cluster[k].j)/cols, 2));
+                float realDistance = sqrt(pow((float)(pixmapIn[p].i - cluster[k].i)/rows, 2) + pow((float)(pixmapIn[p].j - cluster[k].j)/cols, 2));
                 // printf("real distance : %d\n", realDistance);
                 // j'ai un doute sur le calcul de combination, sans parler des poids
-                int combination = color_weight * colorDistance + distance_weight * realDistance;
+                float combination = color_weight * colorDistance + distance_weight * realDistance;
                 // printf("combination : %d\n", combination);
                 if (combination < min)
                 {
