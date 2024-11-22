@@ -4,7 +4,8 @@
 #include "Util.h"
 #include <math.h>
 #include <time.h>
-
+#include <stdbool.h>
+int random_clusters = false;
 void distribute_centroids(pixel *pixmapIN, int rows, int cols, int K, pixel *cluster_centers) {
     int bins = 16; // Diviser l'espace de couleurs en une grille 16x16x16
     int histo [16][16][16];
@@ -54,11 +55,28 @@ void distribute_centroids(pixel *pixmapIN, int rows, int cols, int K, pixel *clu
         histo[max_r][max_g][max_b] = 0;
     }
 }
+void initialize_random_centroids(pixel *pixmapIn, int imageDimension, int K, pixel *cluster) {
+    for (int k = 0; k < K; k++) {
+        // Générer un pixel aléatoire comme centroïde initial
+        int p = rand() % imageDimension;
 
-void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
+        // Assigner les valeurs RGB et les coordonnées spatiales
+        cluster[k].r = pixmapIn[p].r;
+        cluster[k].g = pixmapIn[p].g;
+        cluster[k].b = pixmapIn[p].b;
+        cluster[k].i = pixmapIn[p].i;
+        cluster[k].j = pixmapIn[p].j;
+
+        // Étiqueter le cluster avec son index
+        cluster[k].label = k;
+    }
+}
+
+void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut,int seed)
 {
+
     //int seed = time(NULL); 
-    int seed = 1731921458;
+    // int seed = 1731921458;
     printf("seed : %d\n", seed);
     srand(seed);
     //we save the seed
@@ -77,31 +95,15 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut)
 
     // fix cluster centers in the two dimensions image randomly
     pixel cluster[K];
-    distribute_centroids(pixmapIn,rows,cols,K,cluster);
-    // for (int k = 0; k < K; k++)
-    // {
-
-    //     // on choisit un pixel au hasard
-    //     p = rand() % imageDimension; /* generating random coords to initialize the center ? */
-    //     // printf("p : %d\n", p);
-
-    //     // pour retrouver les indices des composantes correspondant au pixel choisi aléatoirement
-    //     // 3n - 2 = r, 3n - 1 = g, 3n = b
-
-    //     cluster[k].r = pixmapIn[p].r;
-    //     // printf("r : %d\n", cluster[k].r);
-    //     cluster[k].g = pixmapIn[p].g;
-    //     // printf("g : %d\n", cluster[k].g);
-    //     cluster[k].b = pixmapIn[p].b;
-    //     // printf("b : %d\n", cluster[k].b);
-    //     cluster[k].label = k;
-    //     // printf("label : %d\n", cluster[k].label);
-    //     cluster[k].i = pixmapIn[p].i;
-    //     //printf("i : %d\n", cluster[k].i);
-    //     cluster[k].j = pixmapIn[p].j;
-    //     //printf("j : %d\n", cluster[k].j);
-    // }
-    // allocate each pixel of the image to the nearest cluster center
+    if(random_clusters)
+    {
+        initialize_random_centroids(pixmapIn, imageDimension, K, cluster);
+    }
+    else
+    {
+        distribute_centroids(pixmapIn,rows,cols,K,cluster);
+    }
+  
     int i = 0;
     int changes_in_cluster =rows*cols;
     int loops =0;
@@ -193,9 +195,9 @@ int main(int argc, char **argv)
     char file_name[100];
     // args is : file for the moment
 
-    if (argc != 3)
+    if (argc != 5)
     {
-        printf("\n %s  Usage: input_file K ", argv[0]);
+        printf("\n %s  Usage: input_file K random_clusters?[ != 0 for random], seed", argv[0]);
         exit(0);
     }
 
@@ -250,9 +252,14 @@ int main(int argc, char **argv)
     // implementing kmeans algorithm
     // kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
     //  implementing kmeans algorithm
-
+    int seed = atoi(argv[4]);
     int K = atoi(argv[2]);
-    kmeans(pixmap, K, rows, cols, pixmapout);
+    if(atoi(argv[3])!=0){
+        random_clusters = true;
+        printf("random_activated \n");
+    }
+    printf("Starting segmentation of the image \n");
+    kmeans(pixmap, K, rows, cols, pixmapout,seed);
     printf("kmeans done\n");
 
     // reading
