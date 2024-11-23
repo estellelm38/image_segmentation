@@ -77,7 +77,6 @@ void kmeans(pixel *pixmapIn, int K, int rows, int cols, pixel *pixmapOut,int see
 
     //int seed = time(NULL); 
     // int seed = 1731921458;
-    printf("seed : %d\n", seed);
     srand(seed);
     //we save the seed
     FILE *file = fopen("seed.txt", "w");
@@ -195,7 +194,7 @@ int main(int argc, char **argv)
     char file_name[100];
     // args is : file for the moment
 
-    if (argc != 5)
+    if (argc != 4 && argc != 5)
     {
         printf("\n %s  Usage: input_file K random_clusters?[ != 0 for random], seed", argv[0]);
         exit(0);
@@ -252,11 +251,20 @@ int main(int argc, char **argv)
     // implementing kmeans algorithm
     // kmeans(pixmap, MACRO_K , rows, cols, pixmapout);
     //  implementing kmeans algorithm
-    int seed = atoi(argv[4]);
+    int seed =0;
     int K = atoi(argv[2]);
-    if(atoi(argv[3])!=0){
+    if(atoi(argv[3])!=0 && argc == 5){
         random_clusters = true;
+        seed =  atoi(argv[4]);
         printf("random_activated \n");
+        printf("seed : %d\n", seed);
+
+    }else if ( atoi(argv[3])!=0){
+        printf("ERROR PLEASE INTRODUCE THE SEED AS THE FIFTH PARAMETER WHEN ASKING FOR RANDOMNESS \n");
+        exit(EXIT_FAILURE);
+    }else{
+        random_clusters=false;
+        printf("METHOD USED : DISTRIBUTION OF CLUSTERS OVER COLORS \n ");
     }
     printf("Starting segmentation of the image \n");
     kmeans(pixmap, K, rows, cols, pixmapout,seed);

@@ -3,7 +3,12 @@
 
 typedef unsigned char bit;
 typedef unsigned char gray;
-
+typedef struct
+{
+    unsigned char r, g, b;
+    int i, j; // to compute distance here
+    unsigned int label;
+} pixel;
 char pm_getc(FILE *file);
 bit pm_getbit(FILE *file);
 unsigned char pm_getrawbyte(FILE *file);
