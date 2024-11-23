@@ -260,8 +260,15 @@ int main(int argc, char **argv)
         printf("seed : %d\n", seed);
 
     }else if ( atoi(argv[3])!=0){
-        printf("ERROR PLEASE INTRODUCE THE SEED AS THE FIFTH PARAMETER WHEN ASKING FOR RANDOMNESS \n");
-        exit(EXIT_FAILURE);
+    printf("\033[1;31m"); 
+    printf("\033[5m");    
+    
+    printf("OH SO YOU WANT REAL RANDOMNESS B) \n");
+    
+    
+    printf("\033[0m");
+    fflush(stdout);       
+    seed = time(NULL);
     }else{
         random_clusters=false;
         printf("METHOD USED : DISTRIBUTION OF CLUSTERS OVER COLORS \n ");
